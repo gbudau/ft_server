@@ -4,7 +4,7 @@ build:
 
 .PHONY: run
 run:
-	docker run -it -p 80:80 ft_server
+	docker run -it -p 443:443 -p 80:80 ft_server
 
 .PHONY: clean
 clean:
