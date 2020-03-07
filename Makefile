@@ -6,6 +6,10 @@ build:
 run:
 	docker run -it -p 443:443 -p 80:80 ft_server
 
+.PHONY: index
+index:
+	docker build -t ft_server . --build-arg NGINX_AUTOINDEX=on
+
 .PHONY: clean
 clean:
 	docker rm $$(docker ps -a -q)

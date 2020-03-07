@@ -17,14 +17,19 @@ server {
 	#
 	include snippets/snakeoil.conf;
 
+	# Use index.php as index or html directory if autoindex is on
 	index index.php;
 
+	# Autoindex, default off
 	autoindex off;
 
+	# Root directory for server
 	root /var/www/html;
 
-	server_name _;
+	# Server name
+	server_name localhost;
 	
+	# Disable logging for images
     	location ~* \.(css|gif|ico|jpeg|jpg|js|png)$ {
 	
 		expires max;
@@ -49,5 +54,6 @@ server {
 	listen 80 default_server;
 	listen [::]:80 default_server;
 	
+	# Return https when http is used
 	return 301 https://$host$request_uri;
 }

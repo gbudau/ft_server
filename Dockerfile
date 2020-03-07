@@ -1,38 +1,43 @@
-# Specify the base image for this container
+### Specify the base image for this container
 FROM debian:buster
 
-# Labels
+### Labels
 LABEL mantainer="gbudau"
 LABEL usage.build="docker build -t [image name] ."
-LABEL usage.run="docker run -it -p 80:80 -p 443:443 [image id/name]"
-LABEL usage.noninteractive.modify="Add 'sleep infinity' instead of 'bash' in CMD instruction"
-LABEL usage.noninteractive="docker run -d -p 80:80 -p 443:443"
+LABEL usage.run.interactive.mode="docker run -it -p 80:80 -p 443:443 [image id/name]"
+LABEL usage.noninteractive.mode="Add 'sleep infinity' instead of 'bash' in CMD instruction"
+LABEL usage.noninteractive.run="docker run -d -p 80:80 -p 443:443"
 LABEL usage.noninteractive.stop="docker stop [container id/name]"
 
-# Variables
+### Variables
 ARG MYSQL_ROOT_PASSWORD=mysql_password
+# Wordpress database config: database name, database user, database password
 ARG WORDPRESS_DATABASE=wordpress
 ARG WORDPRESS_DATABASE_USER=wordpress_database_user
 ARG WORDPRESS_DATABASE_PASS=wordpress_database_pass
+# Wordpress settings, site url, site name, admin id, admin email, admin password
 ARG WORDPRESS_URL=localhost
 ARG WORDPRESS_SITE_TITLE=ft_server
 ARG WORDPRESS_ADMIN_NAME=wordpress_admin
 ARG WORDPRESS_ADMIN_EMAIL=test@test.com
 ARG WORDPRESS_ADMIN_PASSWORD=wordpress_password
+# PhpMyAdmin version to change it easy when it can be updated
 ARG PHPMYADMIN_VERSION=5.0.1
+# The user that has the password below is 'pma'
 ARG PMA_USER_DATABASE_PASSWORD=pma_user_database_password
+# Another user and password for mysql database
 ARG DATABASE_USER=database_user
 ARG DATABASE_USER_PASSWORD=database_password
-# Set this to [any value] for autoindex on or don't set for autoindex off also can be set at build time with --build-arg NGINX_AUTOINDEX=[any value]
+# Set this to [any value] for autoindex on or keep it unset for autoindex off, also can be set at build time with --build-arg NGINX_AUTOINDEX=[any value]
 ARG NGINX_AUTOINDEX
 
-# Update system and install nginx and mariaDB
+### Update system and install nginx and mariaDB
 RUN apt-get -qq update \
  && apt-get -qq install \
     nginx \ 
     mariadb-server
 
-# Secure the installation of mysql
+### Secure the installation of mysql
 RUN service mysql start \
  && echo "UPDATE mysql.user SET password=PASSWORD('${MYSQL_ROOT_PASSWORD}') WHERE User='root';" | mysql --user=root \
  && echo "DELETE FROM mysql.user WHERE User='';" | mysql --user=root \
@@ -40,17 +45,23 @@ RUN service mysql start \
  && echo "DROP DATABASE IF EXISTS test;" | mysql --user=root \
  && echo "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';" | mysql --user=root
 
-# Install PHP
+### Copy nginx config from host to image
+COPY srcs/nginx-default /etc/nginx/sites-available/default
+
+### Set autoindex to on if NGINX_AUTOINDEX is set
+RUN if [ -n "${NGINX_AUTOINDEX}" ] ; then sed -i -e "s/autoindex off;/autoindex on;/" -e "s/index index.php;/index html;/" /etc/nginx/sites-available/default; fi
+
+### Install PHP
 RUN apt-get -qq install \
     php-fpm \
     php-mysql
 
-# Create new database for WordPress
+### Create new database for WordPress
 RUN service mysql start \
  && echo "CREATE DATABASE ${WORDPRESS_DATABASE} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;" | mysql --user=root \
  && echo "GRANT ALL ON ${WORDPRESS_DATABASE}.* TO '${WORDPRESS_DATABASE_USER}'@'localhost' IDENTIFIED BY '${WORDPRESS_DATABASE_PASS}';" | mysql --user=root
 
-# Install PHP Extensions
+### Install PHP Extensions
 RUN apt-get -qq install \
     php-curl \
     php-gd \ 
@@ -62,7 +73,7 @@ RUN apt-get -qq install \
     php-zip \
  && sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0;/g' etc/php/7.3/fpm/php.ini
 
-# Install other packages
+### Install other packages
 RUN apt-get -qq install \
     ssl-cert \
     openssl \
@@ -70,7 +81,7 @@ RUN apt-get -qq install \
     ed \
     vim
 
-# Install and configure WordPress
+### Install and configure WordPress
 RUN wget -q https://wordpress.org/latest.tar.gz -P tmp \
  && tar xzf tmp/latest.tar.gz -C tmp \
  && cp -r tmp/wordpress/* /var/www/html/ \
@@ -90,7 +101,7 @@ RUN wget -q https://wordpress.org/latest.tar.gz -P tmp \
  && service mysql stop \
  && chown -R www-data:www-data /var/www/html/
 
-# Install phpMyAdmin
+### Install phpMyAdmin
 RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz -P tmp \
  && tar xzf tmp/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages.tar.gz -C tmp \
  && mv tmp/phpMyAdmin-${PHPMYADMIN_VERSION}-all-languages/ /usr/share/phpmyadmin \
@@ -107,13 +118,9 @@ RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyA
  && ln -s /usr/share/phpmyadmin /var/www/html/ \
  && rm -rf tmp/*
 
-# Copy nginx config and enable autoindex if NGINX_AUTOINDEX is set to on
-COPY srcs/nginx-default /etc/nginx/sites-available/default
-RUN if [ "off$NGINX_AUTOINDEX" = "off" ] ; then echo "Autoindex is set  to off"; else sed -i -e "s/autoindex off;/autoindex on;/" -e "s/index index.php;/index html;/" /etc/nginx/sites-available/default; fi
-
-# Start services
+### Start services and terminal, when using -it (interactive + terminal) option
 CMD service php7.3-fpm start && service mysql start && nginx && bash
 
-# Expose ports
+### Ports that needs to be exposed at run time with -p [host port]:[container port]
 EXPOSE 80
 EXPOSE 443
