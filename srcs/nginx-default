@@ -18,18 +18,17 @@ server {
 	include snippets/snakeoil.conf;
 
 	index index.php;
-	autoindex;
+
+	autoindex off;
 
 	root /var/www/html;
 
 	server_name _;
 	
-	# Disable logging of favicon.ico and robots.txt
-	location = /favicon.ico { log_not_found off; access_log off; }
-    	location = /robots.txt { log_not_found off; access_log off; allow all; }
     	location ~* \.(css|gif|ico|jpeg|jpg|js|png)$ {
-    	    expires max;
-    	    log_not_found off;
+	
+		expires max;
+		log_not_found off;
     	}
 
 	location / {
@@ -49,6 +48,6 @@ server {
 server {
 	listen 80 default_server;
 	listen [::]:80 default_server;
-
+	
 	return 301 https://$host$request_uri;
 }
