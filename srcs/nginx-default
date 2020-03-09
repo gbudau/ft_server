@@ -17,13 +17,10 @@ server {
 	#
 	include snippets/snakeoil.conf;
 
-	# Use index.php as index or html directory if autoindex is on
+	# Use index.php as index
 	index index.php;
 
-	# Autoindex, default off
-	autoindex off;
-
-	# Root directory for server
+	# Root directory for the server
 	root /var/www/html;
 
 	# Server name
@@ -35,6 +32,14 @@ server {
 		expires max;
 		log_not_found off;
     	}
+
+	# Enable or disable autoindex when accessing localhost/index
+	location /index {
+		
+		alias /var/www/html;
+		index html;
+		autoindex off;
+	}
 
 	location / {
 		# First attempt to serve request as file, then
