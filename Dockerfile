@@ -6,7 +6,7 @@
 #    By: gbudau <gbudau@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/09 12:18:06 by gbudau            #+#    #+#              #
-#    Updated: 2020/03/09 12:18:13 by gbudau           ###   ########.fr        #
+#    Updated: 2020/03/09 12:48:51 by gbudau           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -123,10 +123,8 @@ RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyA
  && mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${DATABASE_USER}'@'localhost' IDENTIFIED BY '${DATABASE_USER_PASSWORD}';" \
  && service mysql stop \
  && ln -s /usr/share/phpmyadmin /var/www/html/ \
- && rm -rf tmp/*
-
-### Copy image used for WordPress site
-COPY srcs/header.jpg /var/www/html/wp-content/themes/twentyseventeen/assets/images 
+ && rm -rf tmp/* \
+ && wget -q https://upload.wikimedia.org/wikipedia/commons/9/94/Wikimedia_Foundation_Servers-8055_13.jpg -O /var/www/html/wp-content/themes/twentyseventeen/assets/images/header.jpg
 
 ### Start services
 CMD service php7.3-fpm start && service mysql start && nginx && tail -f /dev/null
