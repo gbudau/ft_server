@@ -6,7 +6,7 @@
 #    By: gbudau <gbudau@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/09 12:17:49 by gbudau            #+#    #+#              #
-#    Updated: 2020/03/09 12:17:56 by gbudau           ###   ########.fr        #
+#    Updated: 2020/03/10 19:18:23 by gbudau           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ build:
 
 .PHONY: run
 run:
-	docker run -d -p 443:443 -p 80:80 ft_server
+	docker run --rm -d -p 443:443 -p 80:80 ft_server
 
 .PHONY: exec
 exec:
@@ -32,7 +32,7 @@ stop:
 .PHONY: clean
 clean: stop
 	-docker rm $$(docker ps -a -q)
-	-docker rmi $$(docker images | tr -s ' ' | tail -n +2 | cut -f 3 -d ' ')
+	docker rmi $$(docker images | tr -s ' ' | tail -n +2 | cut -f 3 -d ' ')
 
 .PHONY: re
 re: clean all

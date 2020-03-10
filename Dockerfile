@@ -6,7 +6,7 @@
 #    By: gbudau <gbudau@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/09 12:18:06 by gbudau            #+#    #+#              #
-#    Updated: 2020/03/09 12:48:51 by gbudau           ###   ########.fr        #
+#    Updated: 2020/03/10 19:14:35 by gbudau           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ ARG WORDPRESS_DATABASE=wordpress
 ARG WORDPRESS_DATABASE_USER=wordpress_database_admin
 ARG WORDPRESS_DATABASE_PASS=wordpress_database_pass
 # Wordpress configuration: site url, site name, admin id, admin email, admin password
-ARG WORDPRESS_URL=localhost
+ARG WORDPRESS_URL=127.0.0.1
 ARG WORDPRESS_SITE_TITLE=ft_server
 ARG WORDPRESS_ADMIN_NAME=wordpress_admin
 ARG WORDPRESS_ADMIN_EMAIL=test@test.com
@@ -56,7 +56,6 @@ RUN apt-get -qq update \
     php-xmlrpc \
     php-imagick \
     php-zip \
-    ssl-cert \
     openssl \
     wget
 
@@ -75,7 +74,8 @@ RUN if [ -n "${NGINX_AUTOINDEX}" ] ; then sed -i "s/autoindex off;/autoindex on;
  && mysql -e "CREATE DATABASE ${WORDPRESS_DATABASE} DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;" \
  && mysql -e "GRANT ALL ON ${WORDPRESS_DATABASE}.* TO '${WORDPRESS_DATABASE_USER}'@'localhost' IDENTIFIED BY '${WORDPRESS_DATABASE_PASS}';" \
  && sleep 1 \
- && service mysql stop
+ && service mysql stop \
+ && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt -subj '/CN=127.0.0.1'
 
 ### Install and configure WordPress
 RUN wget -q https://wordpress.org/latest.tar.gz -P tmp \
@@ -89,22 +89,22 @@ RUN wget -q https://wordpress.org/latest.tar.gz -P tmp \
  && cd / \
  && sed -i -e "s/database_name_here/${WORDPRESS_DATABASE}/" -e "s/username_here/${WORDPRESS_DATABASE_USER}/" -e "s/password_here/${WORDPRESS_DATABASE_PASS}/" var/www/html/wp-config.php \
  && mkdir var/www/html/uploads var/www/html/index \
- && wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -P /tmp/ \
- && chmod +x tmp/wp-cli.phar \
- && mv tmp/wp-cli.phar usr/local/bin/wp \
- && service mysql start \
- && wp core install --url=${WORDPRESS_URL} --title=${WORDPRESS_SITE_TITLE} --admin_name=${WORDPRESS_ADMIN_NAME} --admin_email=${WORDPRESS_ADMIN_EMAIL} --admin_password=${WORDPRESS_ADMIN_PASSWORD} --allow-root --path='var/www/html/' --skip-email --quiet \
- && wp theme install twentyseventeen --activate --allow-root --path=/var/www/html --quiet \
- && wp plugin uninstall hello --path=var/www/html/ --allow-root --quiet \
- && wp plugin uninstall akismet --path=var/www/html/ --allow-root --quiet \
- && wp theme delete twentysixteen --allow-root --path=/var/www/html --quiet \
- && wp theme delete twentynineteen --allow-root --path=/var/www/html --quiet \
- && wp theme delete twentytwenty --allow-root --path=/var/www/html --quiet \
- && wp search-replace 'Just another WordPress site' 'Just another Wordp... or maybe not!' --allow-root --path=var/www/html --quiet \
- && wp search-replace 'Hello world!' '42 Madrid' --allow-root --path=var/www/html --quiet \
- && wp search-replace 'A WordPress Commenter' 'A Programmer' --allow-root --path=var/www/html --quiet \
- && wp search-replace 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' 'In progress ...' --allow-root --path=var/www/html --quiet \
- && service mysql stop \
+# && wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -P /tmp/ \
+# && chmod +x tmp/wp-cli.phar \
+# && mv tmp/wp-cli.phar usr/local/bin/wp \
+# && service mysql start \
+# && wp core install --url=${WORDPRESS_URL} --title=${WORDPRESS_SITE_TITLE} --admin_name=${WORDPRESS_ADMIN_NAME} --admin_email=${WORDPRESS_ADMIN_EMAIL} --admin_password=${WORDPRESS_ADMIN_PASSWORD} --allow-root --path='var/www/html/' --skip-email --quiet \
+# && wp theme install twentyseventeen --activate --allow-root --path=/var/www/html --quiet \
+# && wp plugin uninstall hello --path=var/www/html/ --allow-root --quiet \
+# && wp plugin uninstall akismet --path=var/www/html/ --allow-root --quiet \
+# && wp theme delete twentysixteen --allow-root --path=/var/www/html --quiet \
+# && wp theme delete twentynineteen --allow-root --path=/var/www/html --quiet \
+# && wp theme delete twentytwenty --allow-root --path=/var/www/html --quiet \
+# && wp search-replace 'Just another WordPress site' 'Just another server' --allow-root --path=var/www/html --quiet \
+# && wp search-replace 'Hello world!' '42 Madrid' --allow-root --path=var/www/html --quiet \
+# && wp search-replace 'A WordPress Commenter' 'A student' --allow-root --path=var/www/html --quiet \
+# && wp search-replace 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' 'In progress ... :arrow:' --allow-root --path=var/www/html --quiet \
+# && service mysql stop \
  && chown -R www-data:www-data /var/www/html/
 
 ### Install phpMyAdmin
@@ -121,6 +121,7 @@ RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyA
  && mariadb < /usr/share/phpmyadmin/sql/create_tables.sql \
  && mysql -e "GRANT SELECT, INSERT, UPDATE, DELETE ON phpmyadmin.* TO 'pma'@'localhost' IDENTIFIED BY '${PMA_USER_DATABASE_PASSWORD}';" \
  && mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${DATABASE_USER}'@'localhost' IDENTIFIED BY '${DATABASE_USER_PASSWORD}';" \
+ && sleep 1 \
  && service mysql stop \
  && ln -s /usr/share/phpmyadmin /var/www/html/ \
  && rm -rf tmp/* \
@@ -129,6 +130,6 @@ RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyA
 ### Start services
 CMD service php7.3-fpm start && service mysql start && nginx && tail -f /dev/null
 
-### Ports that needs to be exposed at run time with -p [host port]:[container port] // If ports are not exposed comment lines 82-95 to setup WordPress with correct URL
+### Ports that needs to be exposed at run time with -p [host port]:[container port] // If ports are not exposed comment lines 92-107 to setup WordPress with correct URL
 EXPOSE 80
 EXPOSE 443
