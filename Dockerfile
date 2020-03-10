@@ -6,7 +6,7 @@
 #    By: gbudau <gbudau@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/09 12:18:06 by gbudau            #+#    #+#              #
-#    Updated: 2020/03/10 19:14:35 by gbudau           ###   ########.fr        #
+#    Updated: 2020/03/10 20:22:27 by gbudau           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -89,22 +89,22 @@ RUN wget -q https://wordpress.org/latest.tar.gz -P tmp \
  && cd / \
  && sed -i -e "s/database_name_here/${WORDPRESS_DATABASE}/" -e "s/username_here/${WORDPRESS_DATABASE_USER}/" -e "s/password_here/${WORDPRESS_DATABASE_PASS}/" var/www/html/wp-config.php \
  && mkdir var/www/html/uploads var/www/html/index \
-# && wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -P /tmp/ \
-# && chmod +x tmp/wp-cli.phar \
-# && mv tmp/wp-cli.phar usr/local/bin/wp \
-# && service mysql start \
-# && wp core install --url=${WORDPRESS_URL} --title=${WORDPRESS_SITE_TITLE} --admin_name=${WORDPRESS_ADMIN_NAME} --admin_email=${WORDPRESS_ADMIN_EMAIL} --admin_password=${WORDPRESS_ADMIN_PASSWORD} --allow-root --path='var/www/html/' --skip-email --quiet \
-# && wp theme install twentyseventeen --activate --allow-root --path=/var/www/html --quiet \
-# && wp plugin uninstall hello --path=var/www/html/ --allow-root --quiet \
-# && wp plugin uninstall akismet --path=var/www/html/ --allow-root --quiet \
-# && wp theme delete twentysixteen --allow-root --path=/var/www/html --quiet \
-# && wp theme delete twentynineteen --allow-root --path=/var/www/html --quiet \
-# && wp theme delete twentytwenty --allow-root --path=/var/www/html --quiet \
-# && wp search-replace 'Just another WordPress site' 'Just another server' --allow-root --path=var/www/html --quiet \
-# && wp search-replace 'Hello world!' '42 Madrid' --allow-root --path=var/www/html --quiet \
-# && wp search-replace 'A WordPress Commenter' 'A student' --allow-root --path=var/www/html --quiet \
-# && wp search-replace 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' 'In progress ... :arrow:' --allow-root --path=var/www/html --quiet \
-# && service mysql stop \
+ && wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -P /tmp/ \
+ && chmod +x tmp/wp-cli.phar \
+ && mv tmp/wp-cli.phar usr/local/bin/wp \
+ && service mysql start \
+ && wp core install --url=${WORDPRESS_URL} --title=${WORDPRESS_SITE_TITLE} --admin_name=${WORDPRESS_ADMIN_NAME} --admin_email=${WORDPRESS_ADMIN_EMAIL} --admin_password=${WORDPRESS_ADMIN_PASSWORD} --allow-root --path='var/www/html/' --skip-email --quiet \
+ && wp theme install twentyseventeen --activate --allow-root --path=/var/www/html --quiet \
+ && wp plugin uninstall hello --path=var/www/html/ --allow-root --quiet \
+ && wp plugin uninstall akismet --path=var/www/html/ --allow-root --quiet \
+ && wp theme delete twentysixteen --allow-root --path=/var/www/html --quiet \
+ && wp theme delete twentynineteen --allow-root --path=/var/www/html --quiet \
+ && wp theme delete twentytwenty --allow-root --path=/var/www/html --quiet \
+ && wp search-replace 'Just another WordPress site' 'Just another server' --allow-root --path=var/www/html --quiet \
+ && wp search-replace 'Hello world!' '42 Madrid' --allow-root --path=var/www/html --quiet \
+ && wp search-replace 'A WordPress Commenter' 'A student' --allow-root --path=var/www/html --quiet \
+ && wp search-replace 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' 'In progress ... :arrow:' --allow-root --path=var/www/html --quiet \
+ && service mysql stop \
  && chown -R www-data:www-data /var/www/html/
 
 ### Install phpMyAdmin
@@ -130,6 +130,6 @@ RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyA
 ### Start services
 CMD service php7.3-fpm start && service mysql start && nginx && tail -f /dev/null
 
-### Ports that needs to be exposed at run time with -p [host port]:[container port] // If ports are not exposed comment lines 92-107 to setup WordPress with correct URL
+### Ports that needs to be exposed at run time with -p [host port]:[container port]
 EXPOSE 80
 EXPOSE 443
