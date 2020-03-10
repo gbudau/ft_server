@@ -6,7 +6,7 @@
 #    By: gbudau <gbudau@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/09 12:18:06 by gbudau            #+#    #+#              #
-#    Updated: 2020/03/10 20:22:27 by gbudau           ###   ########.fr        #
+#    Updated: 2020/03/10 20:31:32 by gbudau           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ ARG WORDPRESS_DATABASE=wordpress
 ARG WORDPRESS_DATABASE_USER=wordpress_database_admin
 ARG WORDPRESS_DATABASE_PASS=wordpress_database_pass
 # Wordpress configuration: site url, site name, admin id, admin email, admin password
-ARG WORDPRESS_URL=127.0.0.1
+ARG WORDPRESS_URL=localhost
 ARG WORDPRESS_SITE_TITLE=ft_server
 ARG WORDPRESS_ADMIN_NAME=wordpress_admin
 ARG WORDPRESS_ADMIN_EMAIL=test@test.com
