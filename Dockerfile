@@ -6,7 +6,7 @@
 #    By: gbudau <gbudau@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/09 12:18:06 by gbudau            #+#    #+#              #
-#    Updated: 2020/08/28 14:46:07 by gbudau           ###   ########.fr        #
+#    Updated: 2020/08/28 18:51:45 by gbudau           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,7 +23,7 @@ ARG MYSQL_ROOT_PASSWORD=mysql_password
 ARG WORDPRESS_DATABASE=wordpress
 ARG WORDPRESS_DATABASE_USER=wordpress_database_admin
 ARG WORDPRESS_DATABASE_PASS=wordpress_database_pass
-# Wordpress configuration: site url, site name, admin id, admin email, admin password
+# Wordpress configuration
 ARG WORDPRESS_URL=localhost
 ARG WORDPRESS_SITE_TITLE=ft_server
 ARG WORDPRESS_ADMIN_NAME=wordpress_admin
@@ -33,14 +33,15 @@ ARG WORDPRESS_ADMIN_PASSWORD=wordpress_password
 ARG PHPMYADMIN_VERSION=5.0.2
 # Password for the default user for PhpMyAdmin 'pma'
 ARG PMA_USER_DATABASE_PASSWORD=pma_user_database_password
-# Extra user for mysql database
+# Additional user for mysql database
 ARG DATABASE_USER=database_admin
 ARG DATABASE_USER_PASSWORD=database_password
 # Set this to [any value] for autoindex on or keep it unset for autoindex off
 ENV NGINX_AUTOINDEX=
 
-### Update system and install nginx, mysql, php, and additional packages
+### Upgrade and update system and install nginx, mysql, php, and additional packages
 RUN apt-get -qq update \
+ && apt-get -qq upgrade \
  && apt-get -qq install \
     nginx \ 
     mariadb-server \
@@ -65,7 +66,7 @@ COPY srcs/nginx-default /etc/nginx/sites-available/default
 ### Copy nginx autoindex config from host to image
 COPY srcs/nginx-autoindex /nginx-autoindex
 
-### Set autoindex on/off, secure the installation of PHP + mysql and create database for Wordpress
+### Secure the installation of PHP + mysql and create database for Wordpress
 RUN sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0;/g' etc/php/7.3/fpm/php.ini \
  && service mysql start \
  && mysql -e "UPDATE mysql.user SET password=PASSWORD('${MYSQL_ROOT_PASSWORD}') WHERE User='root';" \
@@ -128,7 +129,7 @@ RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyA
  && rm -rf tmp/* \
  && wget -q https://upload.wikimedia.org/wikipedia/commons/9/94/Wikimedia_Foundation_Servers-8055_13.jpg -O /var/www/html/wp-content/themes/twentyseventeen/assets/images/header.jpg
 
-### Start services
+### Set autoindex [on/off], start services and keep the container running
 CMD if [ -n "${NGINX_AUTOINDEX}" ] ; then cp /nginx-autoindex /etc/nginx/sites-available/default; fi \
  && service php7.3-fpm start && service mysql start && nginx && tail -f /dev/null
 
