@@ -6,7 +6,7 @@
 #    By: gbudau <gbudau@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/09 12:18:06 by gbudau            #+#    #+#              #
-#    Updated: 2020/03/10 20:31:32 by gbudau           ###   ########.fr        #
+#    Updated: 2020/08/28 14:46:07 by gbudau           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,14 +30,14 @@ ARG WORDPRESS_ADMIN_NAME=wordpress_admin
 ARG WORDPRESS_ADMIN_EMAIL=test@test.com
 ARG WORDPRESS_ADMIN_PASSWORD=wordpress_password
 # PhpMyAdmin version
-ARG PHPMYADMIN_VERSION=5.0.1
+ARG PHPMYADMIN_VERSION=5.0.2
 # Password for the default user for PhpMyAdmin 'pma'
 ARG PMA_USER_DATABASE_PASSWORD=pma_user_database_password
 # Extra user for mysql database
 ARG DATABASE_USER=database_admin
 ARG DATABASE_USER_PASSWORD=database_password
 # Set this to [any value] for autoindex on or keep it unset for autoindex off
-ARG NGINX_AUTOINDEX=on
+ENV NGINX_AUTOINDEX=
 
 ### Update system and install nginx, mysql, php, and additional packages
 RUN apt-get -qq update \
@@ -59,12 +59,14 @@ RUN apt-get -qq update \
     openssl \
     wget
 
-### Copy nginx config from host to image
+### Copy nginx default config from host to image
 COPY srcs/nginx-default /etc/nginx/sites-available/default
 
+### Copy nginx autoindex config from host to image
+COPY srcs/nginx-autoindex /nginx-autoindex
+
 ### Set autoindex on/off, secure the installation of PHP + mysql and create database for Wordpress
-RUN if [ -n "${NGINX_AUTOINDEX}" ] ; then sed -i "s/autoindex off;/autoindex on;/" /etc/nginx/sites-available/default; fi \
- && sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0;/g' etc/php/7.3/fpm/php.ini \
+RUN sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0;/g' etc/php/7.3/fpm/php.ini \
  && service mysql start \
  && mysql -e "UPDATE mysql.user SET password=PASSWORD('${MYSQL_ROOT_PASSWORD}') WHERE User='root';" \
  && mysql -e "DELETE FROM mysql.user WHERE User='';" \
@@ -88,7 +90,6 @@ RUN wget -q https://wordpress.org/latest.tar.gz -P tmp \
  && rm salt xx00 xx01 xx02 \
  && cd / \
  && sed -i -e "s/database_name_here/${WORDPRESS_DATABASE}/" -e "s/username_here/${WORDPRESS_DATABASE_USER}/" -e "s/password_here/${WORDPRESS_DATABASE_PASS}/" var/www/html/wp-config.php \
- && mkdir var/www/html/uploads var/www/html/index \
  && wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -P /tmp/ \
  && chmod +x tmp/wp-cli.phar \
  && mv tmp/wp-cli.phar usr/local/bin/wp \
@@ -128,7 +129,8 @@ RUN wget -q https://files.phpmyadmin.net/phpMyAdmin/${PHPMYADMIN_VERSION}/phpMyA
  && wget -q https://upload.wikimedia.org/wikipedia/commons/9/94/Wikimedia_Foundation_Servers-8055_13.jpg -O /var/www/html/wp-content/themes/twentyseventeen/assets/images/header.jpg
 
 ### Start services
-CMD service php7.3-fpm start && service mysql start && nginx && tail -f /dev/null
+CMD if [ -n "${NGINX_AUTOINDEX}" ] ; then cp /nginx-autoindex /etc/nginx/sites-available/default; fi \
+ && service php7.3-fpm start && service mysql start && nginx && tail -f /dev/null
 
 ### Ports that needs to be exposed at run time with -p [host port]:[container port]
 EXPOSE 80

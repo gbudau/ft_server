@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    nginx-default                                      :+:      :+:    :+:    #
+#    nginx-autoindex                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: gbudau <gbudau@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/09 12:18:20 by gbudau            #+#    #+#              #
-#    Updated: 2020/08/28 14:47:45 by gbudau           ###   ########.fr        #
+#    Updated: 2020/08/28 14:47:29 by gbudau           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,9 +30,6 @@ server {
 	ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
 	ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
 
-	# Use index.php as index
-	index index.php;
-
 	# Root directory for the server
 	root /var/www/html;
 
@@ -47,16 +44,8 @@ server {
     	}
 
 	location / {
-		# First attempt to serve request as file, then
-		# pass the control to index.php.
-		try_files $uri $uri/ /index.php$is_args$args;
-	}
-
-	# pass PHP scripts to FastCGI server
-	#
-	location ~ \.php$ {
-		include snippets/fastcgi-php.conf;
-		fastcgi_pass unix:/run/php/php7.3-fpm.sock;
+		# Enable autoindex
+		autoindex on;
 	}
 }
 
