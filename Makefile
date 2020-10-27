@@ -6,7 +6,7 @@
 #    By: gbudau <gbudau@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/09 12:17:49 by gbudau            #+#    #+#              #
-#    Updated: 2020/08/28 14:54:25 by gbudau           ###   ########.fr        #
+#    Updated: 2020/10/27 14:24:40 by gbudau           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,23 +19,23 @@ build:
 
 .PHONY: run
 run:
-	docker run --rm -d -p 443:443 -p 80:80 ft_server
+	docker run --rm -d --name ft_server -p 443:443 -p 80:80 ft_server
 
 .PHONY: autoindex
 autoindex:
-	docker run --env NGINX_AUTOINDEX=1 --rm -d -p 443:443 -p 80:80 ft_server
+	docker run --env NGINX_AUTOINDEX=1 --rm -d --name ft_server -p 443:443 -p 80:80 ft_server
 
 .PHONY: exec
 exec:
-	docker exec -u 0 -it $$(docker ps | sed -n '2p' | tr -s ' ' | cut -f 1 -d ' ') bash
+	docker exec -u 0 -it ft_server bash
 
 .PHONY: stop
 stop:
-	-docker stop $$(docker ps | grep 'Up ' | tr -s ' ' | cut -f 1 -d ' ' | tr '\n' ' ')
+	-docker stop ft_server
 
 .PHONY: clean
 clean: stop
-	docker rmi $$(docker images | tr -s ' ' | tail -n +2 | cut -f 3 -d ' ')
+	docker rmi ft_server
 
 .PHONY: show
 show:
